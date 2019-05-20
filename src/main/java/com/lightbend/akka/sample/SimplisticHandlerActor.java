@@ -27,7 +27,7 @@ public class SimplisticHandlerActor extends AbstractActor {
         return receiveBuilder()
                 .match(Received.class, msg -> {
                     final String data = msg.data().utf8String();
-                    log.info("In SimplisticHandlerActor - Received message: " + data + " from" + getSender().);
+                    log.info("In SimplisticHandlerActor - Received message: " + data + " from" + getSender());
                     getSender().tell(TcpMessage.write(ByteString.fromArray(("echo "+data).getBytes())), getSelf());
                 })
                 .match(ConnectionClosed.class, msg -> {

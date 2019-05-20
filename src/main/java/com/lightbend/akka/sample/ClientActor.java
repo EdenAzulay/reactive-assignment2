@@ -1,5 +1,6 @@
 package com.lightbend.akka.sample;
-
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.net.InetSocketAddress;
 import akka.actor.ActorRef;
 import akka.actor.Props;
@@ -22,20 +23,24 @@ public class ClientActor extends AbstractActor {
 
     private ActorRef tcpActor;
     final InetSocketAddress remote;
+    private String name;
 
-    public static Props props(InetSocketAddress remote, ActorRef tcpActor) {
-        return Props.create(ClientActor.class, remote, tcpActor);
+    public static Props props(InetSocketAddress remote, ActorRef tcpActor, String name) {
+        return Props.create(ClientActor.class, remote, tcpActor, name);
     }
 
-    public ClientActor(InetSocketAddress remote, ActorRef tcpActor) {
+    public ClientActor(InetSocketAddress remote, ActorRef tcpActor, String name) {
         this.remote = remote;
         this.tcpActor = tcpActor;
+        this.name = name;
 
         if (tcpActor == null) {
             tcpActor = Tcp.get(getContext().system()).manager();
         }
-
+        // log.info("In ClientActor - sending message: connected");
         tcpActor.tell(TcpMessage.connect(remote), getSelf());
+        
+        // log.info("In ClientActor - after received message: connected");
     }
 
     @Override
@@ -51,7 +56,7 @@ public class ClientActor extends AbstractActor {
             getSender().tell(TcpMessage.register(getSelf()), getSelf());
             getContext().become(connected(getSender()));
 
-            getSender().tell(TcpMessage.write(ByteString.fromArray("hello".getBytes())), getSelf());
+            getSender().tell(TcpMessage.write(ByteString.fromArray(this.name.getBytes())), getSelf());
         
         })
         .build();
